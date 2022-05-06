@@ -138,6 +138,7 @@ class ScalarFunction(FunctionBase):
         :math:`f'_{x_i}` for each input :math:`x_i` times `d_out`.
 
         """
+        # return [values * d_out for values in zip(ctx.saved_values)]
         pass  # pragma: no cover
 
     # Checks.

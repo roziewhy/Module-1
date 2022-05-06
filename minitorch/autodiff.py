@@ -288,6 +288,34 @@ def is_constant(val):
     return not isinstance(val, Variable) or val.history is None
 
 
+def build_graph(variable):
+    mapping = {}
+    graph = {}
+    
+    stack = [variable]
+    while len(stack) > 0:
+        node = stack.pop()
+        mapping[node.unique_id] = node
+        inputs = node.history.inputs
+        if inputs is None:
+            inputs = []
+        children = [c for c in inputs if not is_constant(c)]
+        for child in children:
+            stack.append(child)
+        graph[node.unique_id] = children
+
+    return graph, mapping
+
+
+def count_parents(graph):
+    count = {node: 0 for node in graph}
+    for node, neighbours in graph.items():
+        for neighbour in neighbours:
+            count[neighbour] += 1
+
+    return count
+
+
 def topological_sort(variable):
     """
     Computes the topological order of the computation graph.
@@ -299,8 +327,18 @@ def topological_sort(variable):
         list of Variables : Non-constant Variables in topological order
                             starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    graph = build_graph(variable)
+    num_parents = count_parents(graph)
+    ready = [node for node, parents in num_parents.items() if parents == 0]
+    result = []
+    while len(ready) > 0:
+        node = ready.pop()
+        result.append(node)
+        for child in graph[node]:
+            num_parents[child] -= 1
+            if num_parents[child] == 0:
+                ready.append(child)
+    return result
 
 
 def backpropagate(variable, deriv):
